@@ -1,11 +1,13 @@
+import uuid
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi import FastAPI
-from app.utils import ask_gemini
+from fastapi.responses import JSONResponse
 from fastapi import UploadFile, File
+from app.utils import ask_gemini
 import os
 from app.utils import extract_text_from_pdf
 from app.embedding import split_text
 from app.retriever import add_to_vector_store
-from fastapi.middleware.cors import CORSMiddleware
 
 from fastapi import Request
 from app.retriever import get_relevant_chunks
@@ -29,26 +31,45 @@ def ask(question: str):
 
 @app.post("/upload")
 async def upload_pdf(file: UploadFile = File(...)):
+    print("PDF yükleme başladı...")
+    doc_id = str(uuid.uuid4())
     file_path = f"./data/uploads/{file.filename}"
+
     with open(file_path, "wb") as f:
-        f.write(await file.read())
+        content = await file.read()
+        f.write(content)
+        print(f"{file.filename} dosyası kaydedildi. Boyut: {len(content)} bayt.")
 
     text = extract_text_from_pdf(file_path)
-    print(f"Extracted text length: {len(text)}")
-    print(f"İlk 300 karakter:\n{text[:300]}")
-    chunks = split_text(text)
-    add_to_vector_store(chunks)
+    print(f"PDF'ten alınan text uzunluğu: {len(text)} karakter.")
 
-    return {"message": f"{file.filename} yüklendi ve işlendi.", "chunks": len(chunks)}
+    chunks = split_text(text)
+    print(f"{len(chunks)} chunk'a bölündü.")
+
+    add_to_vector_store(chunks, doc_id=doc_id)
+
+    print("Upload işlemi tamamlandı, response dönüyor.")
+    return {
+        "message": f"{file.filename} yüklendi ve işlendi.",
+        "chunks": len(chunks),
+        "doc_id": doc_id
+    }
 
 
 @app.get("/ask-doc")
-def ask_from_documents(question: str):
+def ask_from_documents(question: str, doc_id:str):
     try:
-        print(f"Soru alındı: {question}")
-        chunks = get_relevant_chunks(question)
-        print(f"{len(chunks)} adet chunk bulundu.")
-
+        print(f"Soru alındı: {question}| Belge ID:{doc_id}")
+        
+        chunks = get_relevant_chunks(question,doc_id)
+        if not chunks:
+            return JSONResponse(
+                status_code=404,
+                content={"message": "Bu belgeyle eşleşen veri bulunamadı."}
+            )
+            
+        print(f"{len(chunks)} adet chunk eşleşti.")
+        
         answer = generate_answer(question, chunks)
         print(f"Gemini cevabı: {answer[:100]}...")
 
