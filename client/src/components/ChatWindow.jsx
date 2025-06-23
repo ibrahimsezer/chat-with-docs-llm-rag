@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import axios from "axios";
 import ChatMessage from "./ChatMessage";
 import UploadButton from "./UploadButton";
+import PremiumPopup from "./PremiumPopup";
 
 function formatTime(date) {
   const d = typeof date === 'string' ? new Date(date) : date;
@@ -21,6 +22,8 @@ const ChatWindow = () => {
   const [loading, setLoading] = useState(false);
   const [docId, setDocId] = useState(localStorage.getItem("last_doc_id") || null);
   const [cooldown, setCooldown] = useState(0);
+  const [premiumOpen, setPremiumOpen] = useState(true);
+  const [quotaExhausted] = useState(false); // Bunu backend'den almak gerekir
   const cooldownRef = useRef();
   const chatEndRef = useRef(null);
 
@@ -37,6 +40,10 @@ const ChatWindow = () => {
 
   const handleSend = async () => {
     if (!input.trim() || cooldown > 0) return;
+    if (quotaExhausted) {
+      setPremiumOpen(true);
+      return;
+    }
     if (!docId) {
       setMessages((prev) => [
         ...prev,
@@ -130,6 +137,8 @@ const ChatWindow = () => {
 
   return (
     <div className="flex flex-col h-full w-full min-h-0 max-w-2xl mx-auto">
+      {/* Premium Popup */}
+      <PremiumPopup open={premiumOpen} onClose={() => setPremiumOpen(false)} />
       {/* Sohbet geçmişi */}
       <div className="flex-1 overflow-y-auto px-4 py-6 space-y-2 bg-dark min-h-0">
         {messages.map((msg, idx) => (
