@@ -129,9 +129,9 @@ const ChatWindow = () => {
   };
 
   return (
-    <div className="flex flex-col w-full max-w-2xl h-[80vh] bg-dark rounded-xl shadow-lg overflow-hidden">
+    <div className="flex flex-col h-full w-full min-h-0 max-w-2xl mx-auto">
       {/* Sohbet geçmişi */}
-      <div className="flex-1 overflow-y-auto px-4 py-6 space-y-2 bg-dark">
+      <div className="flex-1 overflow-y-auto px-4 py-6 space-y-2 bg-dark min-h-0">
         {messages.map((msg, idx) => (
           <ChatMessage
             key={idx}
@@ -143,24 +143,38 @@ const ChatWindow = () => {
         <div ref={chatEndRef} />
       </div>
       {/* Mesaj kutusu ve yükleme */}
-      <div className="flex items-center bg-[#232425] px-4 py-3 border-t border-secondary">
-        <UploadButton onUpload={handleUpload} />
-        <textarea
-          className="flex-1 resize-none bg-secondary text-dark rounded-lg px-3 py-2 mr-2 focus:outline-none focus:ring-2 focus:ring-primary"
-          rows={1}
-          placeholder="Mesajınızı yazın..."
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onKeyDown={handleInputKeyDown}
-          disabled={loading || cooldown > 0}
-        />
-        <button
-          onClick={handleSend}
-          disabled={loading || !input.trim() || cooldown > 0}
-          className="bg-primary hover:bg-[#2fa3a8] text-light px-4 py-2 rounded-lg disabled:opacity-50 min-w-[80px] font-semibold"
-        >
-          {cooldown > 0 ? `${cooldown}s` : "Gönder"}
-        </button>
+      <div className="w-full px-2 pb-6">
+        <div className="flex items-center w-full rounded-2xl bg-[#232425]/80 border border-[#444] shadow-md backdrop-blur-md px-3 py-2 relative">
+          <UploadButton onUpload={handleUpload} />
+          <textarea
+            className="flex-1 resize-none bg-transparent text-light placeholder:text-secondary rounded-lg px-2 py-2 focus:outline-none focus:ring-0 border-none text-base min-h-[32px] max-h-32"
+            rows={1}
+            placeholder="Mesajınızı yazın..."
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={handleInputKeyDown}
+            disabled={loading || cooldown > 0}
+            style={{ transition: 'background 0.2s' }}
+          />
+          {/* Gönder butonu veya sayaç */}
+          {input.trim() ? (
+            <div className={`transition-all duration-300 ml-2 ${input.trim() ? 'opacity-100 scale-100' : 'opacity-0 scale-75 pointer-events-none'}`}>
+              <button
+                onClick={handleSend}
+                disabled={loading || !input.trim() || cooldown > 0}
+                className="bg-primary hover:bg-[#2fa3a8] text-light px-4 py-2 rounded-lg disabled:opacity-50 min-w-[80px] font-semibold shadow-md"
+              >
+                {cooldown > 0 ? `${cooldown}s` : "Gönder"}
+              </button>
+            </div>
+          ) : (
+            cooldown > 0 && (
+              <div className="ml-2 min-w-[80px] flex items-center justify-center text-secondary font-semibold animate-pulse select-none">
+                {cooldown}s
+              </div>
+            )
+          )}
+        </div>
       </div>
     </div>
   );
