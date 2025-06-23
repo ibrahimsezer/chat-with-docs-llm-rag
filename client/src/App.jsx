@@ -1,13 +1,12 @@
 import React from "react";
-import UploadForm from "./components/UploadForm";
-import AskForm from "./components/AskForm";
+import ChatWindow from "./components/ChatWindow";
+import sezermindLogo from "./assets/logos/sezermind_banner_logo.png";
 
 function App() {
   return (
-    <div className="min-h-screen bg-gray-100 flex flex-col items-center justify-center p-6 space-y-8">
-      <h1 className="text-3xl font-bold text-center text-blue-700">Chat with your Documents</h1>
-      <UploadForm />
-      <AskForm />
+    <div className="min-h-screen bg-dark flex flex-col items-center justify-center p-4">
+      <img src={sezermindLogo} alt="SezerMind Logo" className="max-w-full h-48 mx-auto mb-6" />
+      <ChatWindow />
     </div>
   );
 }
