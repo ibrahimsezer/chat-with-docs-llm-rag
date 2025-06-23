@@ -1,19 +1,14 @@
 import uuid
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi import FastAPI
+from fastapi import FastAPI, Query
 from fastapi.responses import JSONResponse
 from fastapi import UploadFile, File
 from app.utils import ask_gemini
 import os
 from app.utils import extract_text_from_pdf
 from app.embedding import split_text
-from app.retriever import add_to_vector_store
-
-from fastapi import Request
-from app.retriever import get_relevant_chunks
+from app.vector_store import add_to_vector_store_faiss, search_faiss
 from app.qa_chain import generate_answer
-
-from app.retriever import collection
 
 app = FastAPI()
 app.add_middleware(
@@ -46,7 +41,7 @@ async def upload_pdf(file: UploadFile = File(...)):
     chunks = split_text(text)
     print(f"{len(chunks)} chunk'a bölündü.")
 
-    add_to_vector_store(chunks, doc_id=doc_id)
+    add_to_vector_store_faiss(chunks, doc_id=doc_id)
 
     print("Upload işlemi tamamlandı, response dönüyor.")
     return {
@@ -55,35 +50,29 @@ async def upload_pdf(file: UploadFile = File(...)):
         "doc_id": doc_id
     }
 
-
-@app.get("/ask-doc")
-def ask_from_documents(question: str, doc_id:str):
+@app.post("/ask-doc")
+def ask_from_documents(question: str = Query(description="Sorulacak soru"),
+    doc_id: str = Query(description="Belge ID'si")):
     try:
         print(f"Soru alındı: {question}| Belge ID:{doc_id}")
-        
-        chunks = get_relevant_chunks(question,doc_id)
+        chunks = search_faiss(question, doc_id)
         if not chunks:
             return JSONResponse(
                 status_code=404,
                 content={"message": "Bu belgeyle eşleşen veri bulunamadı."}
             )
-            
         print(f"{len(chunks)} adet chunk eşleşti.")
-        
         answer = generate_answer(question, chunks)
         print(f"Gemini cevabı: {answer[:100]}...")
-
         return {
             "question": question,
             "answer": answer,
             "context_used": chunks
         }
-
     except Exception as e:
         print(f"[HATA] ask-doc endpoint'inde sorun: {e}")
         return {"error": str(e)}
 
-    
 @app.get("/ask-test")
 def ask_test():
     from app.utils import ask_gemini
