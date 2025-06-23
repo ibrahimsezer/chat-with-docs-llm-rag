@@ -18,6 +18,3 @@ def split_text(text: str, max_chunk_size: int = 500) -> list[str]:
         chunks.append(current_chunk.strip())
 
     return chunks
-
-def fake_embed(text: str) -> list[float]:
-    return [random.random() for _ in range(384)]
