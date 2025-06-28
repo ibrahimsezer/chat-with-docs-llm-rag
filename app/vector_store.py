@@ -1,11 +1,12 @@
 import os
 from langchain_community.vectorstores import FAISS
 from langchain.docstore.document import Document
-from langchain_google_genai import GoogleGenerativeAIEmbeddings
+from app.ollama_embeddings import OllamaEmbeddings
 
 FAISS_PATH = "./data/faiss_index"
 
-embeddings = GoogleGenerativeAIEmbeddings(model="models/gemini-embedding-exp-03-07", google_api_key=os.getenv("GEMINI_API_KEY"))
+
+embeddings = OllamaEmbeddings()
 vectorstore = None
 
 def load_faiss():

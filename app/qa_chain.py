@@ -1,4 +1,6 @@
-from app.utils import ask_gemini
+from app.ollama_llm import OllamaLLM
+
+llm = OllamaLLM()
 
 def generate_answer(query: str, context_chunks: list[str]) -> str:
     context = "\n\n".join(context_chunks)
@@ -13,4 +15,4 @@ Belgelerden Alınan İçerikler:
 {context}
 """
 
-    return ask_gemini(prompt)
+    return llm(prompt)
