@@ -34,7 +34,7 @@ A secure, private, open-source chatbot that allows **multiple users** to upload 
 
 ## 🚀 How It Works
 
-```mermaid
+```
 flowchart TD
     A[User uploads PDF] -->|/upload| B[Server: PDF split & embed (Ollama)]
     B --> C[FAISS: Add chunks (user_id, doc_id)]
