@@ -1,12 +1,12 @@
-# 📄 Chat With Your Documents - LLM + RAG + FAISS (Secure, Multi-User)
+# 📄 Chat With Your Documents - LLM + RAG + FAISS (Secure, Multi-User, Offline with Ollama)
 
 ![Python](https://img.shields.io/badge/Python-3.10%2B-blue?logo=python)
 ![FastAPI](https://img.shields.io/badge/FastAPI-async-green?logo=fastapi)
 ![FAISS](https://img.shields.io/badge/FAISS-vectorstore-orange)
 ![LangChain](https://img.shields.io/badge/LangChain-embeddings-yellow)
-![Gemini](https://img.shields.io/badge/Gemini-API-blueviolet)
+![Ollama](https://img.shields.io/badge/Ollama-local--LLM-brightgreen)
 
-A secure, private, open-source chatbot that allows **multiple users** to upload PDF documents and ask questions using AI (RAG). Each user's data is isolated and protected. Built with FastAPI, persistent FAISS vector store, and Gemini/OpenAI LLMs.
+A secure, private, open-source chatbot that allows **multiple users** to upload PDF documents and ask questions using AI (RAG). Each user's data is isolated and protected. Built with FastAPI, persistent FAISS vector store, and **local LLMs/embeddings via Ollama** (no external API required).
 
 ---
 
@@ -17,7 +17,9 @@ A secure, private, open-source chatbot that allows **multiple users** to upload 
 - 💾 **Persistent FAISS vector store** (secure, not user-uploadable)
 - 🧩 **RAG pipeline**: Embedding + vector similarity search + LLM answer
 - 🌐 **FastAPI backend** (REST endpoints)
-- 🛡️ **Security best practices** (file type/size checks, API key via env, no direct file access)
+- 🛡️ **Security best practices** (file type/size checks, no direct file access)
+- 🐳 **Docker Compose** for easy, reproducible deployment
+- 🦙 **Ollama** for fully offline LLM and embedding (phi3-mini, mistral, nomic-embed-text)
 
 ---
 
@@ -25,31 +27,60 @@ A secure, private, open-source chatbot that allows **multiple users** to upload 
 - ![Python](https://img.shields.io/badge/-Python-3776AB?logo=python) Python, FastAPI
 - ![FAISS](https://img.shields.io/badge/-FAISS-orange) FAISS (vector DB, persistent)
 - ![LangChain](https://img.shields.io/badge/-LangChain-yellow) LangChain (embeddings)
-- ![Gemini](https://img.shields.io/badge/-Gemini-blueviolet) Gemini Pro API (or OpenAI)
+- ![Ollama](https://img.shields.io/badge/-Ollama-brightgreen) Ollama (local LLM/embeddings)
+- ![Docker](https://img.shields.io/badge/-Docker-blue) Docker Compose (multi-service)
 
 ---
 
 ## 🚀 How It Works
 
-```
+```mermaid
 flowchart TD
-    A[User uploads PDF] -->|/upload| B[Server: PDF split & embed]
+    A[User uploads PDF] -->|/upload| B[Server: PDF split & embed (Ollama)]
     B --> C[FAISS: Add chunks (user_id, doc_id)]
     D[User asks question] -->|/ask-doc| E[Server: Query FAISS (user_id, doc_id)]
     E --> F[Relevant chunks]
-    F --> G[LLM (Gemini/OpenAI) generates answer]
+    F --> G[LLM (Ollama) generates answer]
     G --> H[Answer to user]
 ```
 
 ---
 
-## 📦 Run Locally
+## 📦 Run Locally (with Docker Compose)
 
+### 1. **Clone the repository**
 ```bash
 git clone ...
-pip install -r requirements.txt
-python app/main.py
+cd chat-with-docs-llm-rag
 ```
+
+### 2. **Configure Environment**
+Create a `.env` file in the root:
+```env
+# For Docker Compose (default)
+OLLAMA_URL=http://ollama:11434
+LLM_MODEL=phi3-mini
+EMBED_MODEL=nomic-embed-text
+```
+
+### 3. **Start All Services**
+```bash
+docker compose up --build
+```
+- Ollama, backend, and frontend will all start and connect automatically.
+- Access the frontend at [http://localhost:5173](http://localhost:5173)
+- Backend API at [http://localhost:8000](http://localhost:8000)
+
+### 4. **(Optional) Run Locally Without Docker**
+- Start Ollama manually: `ollama serve` (or via Docker: `docker run -d -p 11434:11434 ollama/ollama`)
+- Set `.env`:
+  ```env
+  OLLAMA_URL=http://localhost:11434
+  LLM_MODEL=phi3-mini
+  EMBED_MODEL=nomic-embed-text
+  ```
+- Install requirements: `pip install -r requirements.txt`
+- Start backend: `uvicorn app.main:app --reload`
 
 ---
 
@@ -91,7 +122,23 @@ print(r.json())
 - **User isolation:** All data is tagged with `user_id` (from header or IP)
 - **No user-uploaded index:** Only server-created FAISS index is used
 - **File checks:** Only PDFs, max 10MB
-- **API keys:** Use environment variables for Gemini/OpenAI keys
+- **No external API keys required:** All LLM/embedding is local via Ollama
 - **Rate limiting:** In-memory per user (for production, use Redis or similar)
 - **File permissions:** Restrict `faiss_index` and `uploads` to server user
+
+---
+
+## 🐳 Docker Compose Overview
+
+- **Ollama**: Serves local LLMs and embedding models
+- **Backend**: FastAPI, LangChain, FAISS, connects to Ollama
+- **Frontend**: React/Vite, connects to backend
+- **Persistent volumes**: For Ollama models and FAISS index
+
+---
+
+## 💡 Notes
+- Make sure to pull Ollama models you want to use (e.g. `ollama pull phi3-mini`, `ollama pull nomic-embed-text`)
+- You can swap LLM/embedding models by changing `.env` and restarting services
+- For production, consider using a more robust rate limiting and user/session management
 
