@@ -15,6 +15,7 @@ services:
     depends_on:
       - ollama
     volumes:
+      - ./app:/app
       - vector_data:/app/data
     ports:
       - "8000:8000"

@@ -1,4 +1,4 @@
-from app.ollama_llm import OllamaLLM
+from ollama_llm import OllamaLLM
 
 llm = OllamaLLM()
 

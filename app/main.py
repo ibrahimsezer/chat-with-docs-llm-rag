@@ -6,13 +6,12 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi import FastAPI, Query, Request
 from fastapi.responses import JSONResponse
 from fastapi import UploadFile, File, HTTPException
-from app.ollama_embeddings import OllamaEmbeddings
-from app.ollama_llm import OllamaLLM
-from app.utils import ask_gemini
-from app.utils import extract_text_from_pdf
-from app.embedding import split_text
-from app.vector_store import add_to_vector_store_faiss, search_faiss
-from app.qa_chain import generate_answer
+from ollama_embeddings import OllamaEmbeddings
+from ollama_llm import OllamaLLM
+from utils import extract_text_from_pdf
+from embedding import split_text
+from vector_store import add_to_vector_store_faiss, search_faiss
+from qa_chain import generate_answer
 
 
 

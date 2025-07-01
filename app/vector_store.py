@@ -1,7 +1,7 @@
 import os
 from langchain_community.vectorstores import FAISS
 from langchain.docstore.document import Document
-from app.ollama_embeddings import OllamaEmbeddings
+from ollama_embeddings import OllamaEmbeddings
 
 FAISS_PATH = "./data/faiss_index"
 
