@@ -1,7 +1,3 @@
-import hashlib
-import random
-
-
 def split_text(text: str, max_chunk_size: int = 500) -> list[str]:
     sentences = text.split(". ")
     chunks = []

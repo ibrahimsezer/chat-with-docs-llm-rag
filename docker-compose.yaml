@@ -7,7 +7,9 @@ services:
     volumes:
       - ollama_data:/root/.ollama
     restart: unless-stopped
-
+    networks:
+      - ragnet
+  
   backend:
     build: ./app
     env_file:
